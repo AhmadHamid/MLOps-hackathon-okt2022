@@ -53,14 +53,14 @@ def get_reddit_client():
     )
 
 
-def get_reddits(subreddit_name, feed, limit):
+def get_reddits_old(subreddit_name, feed, limit):
     assert feed in ["hot", "new", "top"]
     cli = get_reddit_client()
     subreddit = cli.subreddit(subreddit_name)
     return list(getattr(subreddit, feed)(limit=limit))  # subreddit.feed(limit)
 
 
-def reddits_to_df(submissions: Iterable[RedditPost]):
+def reddits_to_df_old(subms: Iterable[RedditPost]):
     return pd.DataFrame(
         {
             # "obj": subm,
@@ -70,5 +70,31 @@ def reddits_to_df(submissions: Iterable[RedditPost]):
             "text": subm.title,
             "url": subm.url,
         }
-        for subm in submissions
+        for subm in subms
     )
+
+def get_reddits(subreddit_name, feed, limit):
+    sublist = list()
+    api = get_reddit_client()
+    subreddit = api.subreddit(subreddit_name)
+
+    for subm in subreddit.top(limit=limit):
+        if ((subm.link_flair_text == "Asshole") or (subm.link_flair_text == "Not the A-hole") or (subm.link_flair_text == "Everyone Sucks") or (subm.link_flair_text == "No A-holes here")):
+            sublist.append(subm)
+    
+    return sublist
+
+def reddits_to_df(subms: Iterable[RedditPost]):
+    return pd.DataFrame(
+            {
+                "id": subm.id,
+                "created_at": subm.created_utc,
+                "source": subm.subreddit.display_name,
+                "author": subm.author,
+                "url": subm.url,
+                "title": subm.title,
+                "text": subm.selftext,
+                "flair": subm.link_flair_text
+            }
+            for subm in subms
+        )
