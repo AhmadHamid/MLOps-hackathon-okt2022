@@ -90,7 +90,7 @@ def reddits_to_df(subms: Iterable[RedditPost]):
                 "id": subm.id,
                 "created_at": subm.created_utc,
                 "source": subm.subreddit.display_name,
-                "author": subm.author,
+                "author": subm.author.name,
                 "url": subm.url,
                 "title": subm.title,
                 "text": subm.selftext,
