@@ -14,18 +14,20 @@ def compute_metrics(eval_pred):
     return metric.compute(predictions=predictions, references=labels)
 
     
-def train_transformer(train_df, eval_df):
+def train_transformer(train_df, eval_df, model_save_path):
     model_ckp = "distilbert-base-uncased"
     model_name = model_ckp.split("/")[-1]
     tokenizer = AutoTokenizer.from_pretrained(model_ckp, use_fast=True)
 
 
-    train_df['label'] = train_df['label'].apply(lambda x: {'yes':1, 'no':0}[x]).astype(int)
+    train_df['label'] = train_df['label'].apply(lambda x: {'Asshole':1, 'Not the A-hole':0}[x]).astype(int)
+    eval_df['label'] = eval_df['label'].apply(lambda x: {'Asshole':1, 'Not the A-hole':0}[x]).astype(int)
     train_dataset = Dataset.from_pandas(train_df)
     eval_dataset = Dataset.from_pandas(eval_df)
 
-    label_map = ClassLabel(num_classes=2, names=['yes', 'no'])
+    label_map = ClassLabel(num_classes=2, names=['Not the A-hole', 'Asshole'])
     train_dataset.features['label'] = label_map
+    eval_dataset.features['label'] = label_map
     
 
     def preprocess_function(examples):
@@ -64,4 +66,4 @@ def train_transformer(train_df, eval_df):
 
     trainer.train()
 
-    model.save()
+    model.save(model_save_path)
