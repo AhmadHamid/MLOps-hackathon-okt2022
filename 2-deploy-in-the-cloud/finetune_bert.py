@@ -14,7 +14,7 @@ def compute_metrics(eval_pred):
     return metric.compute(predictions=predictions, references=labels)
 
     
-def train_transformer(train_df, eval_df, model_save_path):
+def train_transformer(train_df, eval_df, model_save_path, epochs=1):
     model_ckp = "distilbert-base-uncased"
     model_name = model_ckp.split("/")[-1]
     tokenizer = AutoTokenizer.from_pretrained(model_ckp, use_fast=True)
@@ -38,10 +38,9 @@ def train_transformer(train_df, eval_df, model_save_path):
 
     model = AutoModelForSequenceClassification.from_pretrained(model_ckp, num_labels=2)
 
-    batch_size=1
+    batch_size=10
     training_args = TrainingArguments(
         f"{model_name}-finetuned-amita-flairs",
-        output_dir="test_trainer",
         load_best_model_at_end=True,
         metric_for_best_model='eval_accuracy',
         save_strategy='epoch',
@@ -49,7 +48,7 @@ def train_transformer(train_df, eval_df, model_save_path):
         learning_rate=2e-5,
         per_device_train_batch_size=batch_size,
         per_device_eval_batch_size=batch_size,
-        num_train_epochs=5,
+        num_train_epochs=epochs,
         weight_decay=0.01,
         )
 
@@ -66,4 +65,4 @@ def train_transformer(train_df, eval_df, model_save_path):
 
     trainer.train()
 
-    model.save(model_save_path)
+    model.save_pretrained(model_save_path)

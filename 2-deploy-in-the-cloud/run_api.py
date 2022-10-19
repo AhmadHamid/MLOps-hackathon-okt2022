@@ -53,6 +53,7 @@ def load_model(bucket, path):
 
 class TrainRequest(BaseModel):
     model: str 
+    epochs: int
 
 
 @app.post("/train")
@@ -67,21 +68,23 @@ def train_model(req: TrainRequest):
 
     # Run a Standard SQL query using the environment's default project
     df = client.query(sql).to_dataframe()
-
     df.columns = ['text', 'label']
     # Run a Standard SQL query with the project set explicitly
-    project_id = 'your-project-id'
-    df = client.query(sql, project=project_id).to_dataframe()
+    #project_id = 'your-project-id'
+    #df = client.query(sql, project='dtumlopss').to_dataframe()
 
     df = df.loc[df['label'].isin(['Not the A-hole', 'Asshole'])]
+
 
     train_ids, test_ids = train_test_split(np.arange(df.shape[0]))
 
     train_df = df.iloc[train_ids]
     test_df = df.iloc[test_ids]
 
-    train_transformer(train_df, test_df, 'distilbert-aita')
-    save_model('distilbert-aita', req.model)
+    train_transformer(train_df, test_df, 'distilbert-aita', epochs=req.epochs)
+
+    bucket, path = re.match(r"gs://([^/]+)/(.+)", req.model).groups()
+    save_model('distilbert-aita', bucket, path)
 
     return "success"
 
@@ -114,6 +117,8 @@ class PredictRequest(BaseModel):
 
 @app.post("/predict")
 def predict(req: PredictRequest):
-    pline = load_model(req.model)
-    preds = pline
+
+    bucket, path = re.match(r"gs://([^/]+)/(.+)", req.model).groups()
+    pline = load_model(bucket, path)
+    preds = pline(req.sample)
     return preds

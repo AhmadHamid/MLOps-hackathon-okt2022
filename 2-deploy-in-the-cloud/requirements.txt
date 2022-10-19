@@ -1,8 +1,15 @@
+db-dtypes
 pandas
 seaborn
 sklearn
 google-cloud-storage
+google-cloud-bigquery
 gcsfs
 pydantic
 fastapi
 uvicorn
+transformers
+torch
+tokenizers
+datasets
+evaluate
